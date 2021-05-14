@@ -51,5 +51,4 @@ target_link_libraries(Routes
   )
 # -----------------------------------------------------------------------------
 
-# TODO: Create symlink to root folder
 set_target_properties(Routes PROPERTIES CXX_STANDARD 17)
