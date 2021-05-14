@@ -1,0 +1,11 @@
+#!/bin/env bash
+
+make -C build/
+if [ $? -eq 0 ]
+then
+  echo "Running..."
+  sleep 1
+  ./build/Routes
+else
+  echo "Error on compiling!"
+fi
