@@ -1,0 +1,3 @@
+clang++
+% make -C UI_build
+% bear make -C UI_build

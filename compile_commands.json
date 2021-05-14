@@ -1,0 +1,19 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-I/home/daniel/Documents/Unioeste/2021/ED/Routes/include",
+      "-I/home/daniel/Documents/Unioeste/2021/ED/Routes/UI_build/_deps/ftxui-src/include",
+      "-I/home/daniel/Documents/Unioeste/2021/ED/Routes/UI_build/_deps/json-src/include",
+      "-g",
+      "-std=gnu++17",
+      "-c",
+      "-o",
+      "CMakeFiles/Routes.dir/src/main.cpp.o",
+      "/home/daniel/Documents/Unioeste/2021/ED/Routes/src/main.cpp"
+    ],
+    "directory": "/home/daniel/Documents/Unioeste/2021/ED/Routes/UI_build",
+    "file": "/home/daniel/Documents/Unioeste/2021/ED/Routes/src/main.cpp",
+    "output": "/home/daniel/Documents/Unioeste/2021/ED/Routes/UI_build/CMakeFiles/Routes.dir/src/main.cpp.o"
+  }
+]
