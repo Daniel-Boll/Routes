@@ -76,7 +76,6 @@ class DLinkedList {
     T add(T data);
     T unshift(T data);
     T addAt(T data, int32_t index);
-    /* T addSorted(T data); */
 
     T remove();
     T shift();
