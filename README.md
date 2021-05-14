@@ -1,4 +1,4 @@
-# <h1 align="center">Trabalho de lista duplamente encadeada</h1>
+# <h1 align="center">Trabalho de Lista Duplamente Encadeada</h1>
 
 > Esse trabalho foi proposto na matéria de Estrutura de Dados pelo
 > professor Leonardo Medeiros.
