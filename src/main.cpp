@@ -170,29 +170,30 @@ class Checkout : public ComponentBase {
     }
 
   bool OnEvent(Event event) override {
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    keyPressed = converter.from_bytes(event.input()); 
-   
-    std::wstring leftTemplate = converter.from_bytes(event.ArrowLeft.input());
-    std::wstring rightTemplate = converter.from_bytes(event.ArrowRight.input());
-    std::wstring pageUpTemplate = converter.from_bytes(event.PageUp.input());
-    std::wstring pageDownTemplate = converter.from_bytes(event.PageDown.input());
-    
-
     // Should actually change here to boost::iequal
-    if(isequal(keyPressed, leftTemplate)) {
+    if(event == Event::ArrowLeft) {
       keyPressedDebug = L"<-";
       routesDataRef.get()->prevCity();
-    } else if (isequal(keyPressed, rightTemplate)) {
-      keyPressedDebug = L"->";
-      routesDataRef.get()->nextCity();
-    } else if (isequal(keyPressed, pageUpTemplate)) {
-      routesDataRef.get()->changeRoute(0);
-    } else if (isequal(keyPressed, pageDownTemplate)) {
-      routesDataRef.get()->changeRoute(1);
+      return true;
     }
 
-    return true;
+    if (event == Event::ArrowRight) {
+      keyPressedDebug = L"->";
+      routesDataRef.get()->nextCity();
+      return true;
+    }
+
+    if (event == Event::PageUp) {
+      routesDataRef.get()->changeRoute(0);
+      return true;
+    }
+
+    if (event == Event::PageDown) {
+      routesDataRef.get()->changeRoute(1);
+      return true;
+    }
+
+    return false;
   }
 
   bool isequal(const std::wstring& first, const std::wstring& second) {
