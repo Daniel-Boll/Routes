@@ -129,44 +129,24 @@ class Checkout : public ComponentBase {
 
       auto currentRouteName = text(routeName) | center;
       auto cityInfo = vbox({
-        text(cityName) | center,
-        separator(),
-        text(cityBio)
-      });
-      
-      auto key = text(
-        keyPressedDebug.empty() 
-          ? L"Key to be pressed"
-          : keyPressedDebug
-      ) | center;
-      
-      auto footer = vbox({
-        // ------------------------------
-        // Filler not working, dunno why
-        text(L""),
-        text(L""),
-        text(L""),
-        text(L""),
-        text(L""),
-        text(L""),
-        text(L""),
-        // ------------------------------
-        text(L"City navigation: -> | <-") | center,
-        text(L"Change route: PgUp | PgDown") | center
+          text(cityName) | center,
+          separator(),
+          text(cityBio),
       });
 
-      return vbox({vbox({ 
-          currentRouteName,
-          separator(),
-          vbox({
-              cityInfo,
-              separator(),
-              key
-          }) | center | border,
-          }) ,
-          filler(), 
-          footer
-        })| center | border;
+      auto key = text(keyPressedDebug.empty() ? L"Key to be pressed"
+                                              : keyPressedDebug) |
+                 center;
+      return vbox({
+                 currentRouteName,
+                 separator(),
+                 vbox({cityInfo, separator(), key}) | hcenter | border,
+                 filler(),
+                 text(L"City navigation: -> | <-") | hcenter,
+                 text(L"Change route: PgUp | PgDown") | hcenter,
+                 filler(),
+             }) |
+             center | border;
     }
 
   bool OnEvent(Event event) override {
