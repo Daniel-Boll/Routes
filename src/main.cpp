@@ -81,7 +81,7 @@ class RoutesData : public DLinkedList<std::vector<std::wstring>> {
     std::wstring currentCityName() {
        return current->getData().front(); 
     }
-   
+
     std::wstring currentCityBio() {
       return current->getData().back();
     }
@@ -371,28 +371,6 @@ class Routes : public ComponentBase {
   }
 };
 
-class Home : public ComponentBase {
-  Element Render() override {
-    auto title = hbox({
-      text(L"Welcome to Daniel's "),
-      text(L"Bus System ") | blink | bold | color(Color::YellowLight),
-      text(L"Management") 
-    }) | center;
-
-    auto footer = hbox({
-      text(L"© All rights reserver for Daniel™") | center
-    });
-
-    return
-      vbox({
-        filler(),
-        title,
-        filler(),
-        footer
-      }) | flex | border; 
-  }
-};
-
 class Tab : public ComponentBase {
   public:
     Component mainContainer = Container::Vertical({});
@@ -408,7 +386,26 @@ class Tab : public ComponentBase {
     };
     Component tabSelection = Toggle(&tab_entries, &tab_selected);
 
-    Component home = Make<Home>();
+    Component home = Renderer([] {
+      auto title =
+          hbox({
+              text(L"Welcome to Daniel's "),
+              text(L"Bus System ") | blink | bold | color(Color::YellowLight),
+              text(L"Management"),
+          }) |
+          hcenter;
+
+      auto footer = text(L"© All rights reserver for Daniel™") | hcenter;
+
+      return vbox({
+                 filler(),
+                 title,
+                 filler(),
+                 footer,
+             }) |
+             border;
+    });
+
     std::shared_ptr<Routes> routes = Make<Routes>();
     std::shared_ptr<Checkout> checkout = Make<Checkout>();
     Component about =
