@@ -301,24 +301,19 @@ class Routes : public ComponentBase {
   Component saveButton = Button(L"Save and quit", [] {});
 
   // -------------- Containers ---------------
-  Component addAndLoad = Container::Horizontal({
-      addButton,
-      loadButton,
-  });
 
-  Component save = Container::Horizontal({
-      saveButton,
-  });
-
-  Component container = Container::Vertical({
-      addAndLoad,
-      save,
-  });
-
-  Component main_container = Container::Tab({
-      container,
-      routesAddModal_,
-  }, &modal_shown);
+  Component main_container = Container::Tab(
+      {
+          Container::Vertical({
+              Container::Horizontal({
+                  addButton,
+                  loadButton,
+              }),
+              saveButton,
+          }),
+          routesAddModal_,
+      },
+      &modal_shown);
 
   std::wstring xapa;
 
@@ -329,26 +324,36 @@ class Routes : public ComponentBase {
     Routes() { Add(main_container); }
 
     Element Render() override {
-      auto title = hbox({text((xapa.empty()) ? L"ROUTE MANAGEMENT" : xapa) |
-                         bold | center | color(Color::YellowLight)});
+      auto title = text((xapa.empty()) ? L"ROUTE MANAGEMENT" : xapa) | bold |
+                   hcenter | color(Color::YellowLight);
 
-      auto buttons =
-          vbox({hbox(addAndLoad->Render()), hbox(save->Render()) | center}) |
-          center;
+      auto buttons = vbox({
+                         hbox({
+                             addButton->Render(),
+                             loadButton->Render(),
+                         }),
+                         saveButton->Render() | xflex,
+                     }) |
+                     center;
 
-      auto footer = hbox({text(L"© All rights reserver for Daniel™") | center});
+      auto footer = text(L"© All rights reserver for Daniel™") | hcenter;
 
-      auto content =
-          vbox(title, filler(), buttons, filler(), footer) | flex | border;
+      auto document = vbox({
+                          title,
+                          filler(),
+                          buttons,
+                          filler(),
+                          footer,
+                      }) |
+                      flex | border;
 
-      Element document = content;
       if (modal_shown) {
         document =
             dbox({document, routesAddModal_->Render() | clear_under | center});
       }
 
       return document;
-  }
+    }
 };
 
 int main() {
