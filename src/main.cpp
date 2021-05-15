@@ -12,24 +12,13 @@
 #include <map>
 #include <memory>
 
-#include "ftxui/component/container.hpp"
-#include "ftxui/component/button.hpp"
-#include "ftxui/component/checkbox.hpp"
-#include "ftxui/component/input.hpp"
+#include "ftxui/component/component.hpp"
 #include "ftxui/component/menu.hpp"
-#include "ftxui/component/radiobox.hpp"
-#include "ftxui/component/toggle.hpp"
 #include "ftxui/component/screen_interactive.hpp"
 
 #include "ftxui/screen/string.hpp"
 
 using namespace ftxui;
-
-class About : public Component {
-  Element Render() override {
-    return hbox(text(L"About") | center) | flex | border;
-  }
-};
 
 class RoutesData : public DLinkedList<std::vector<std::wstring>> {
   public:
@@ -49,10 +38,10 @@ class RoutesData : public DLinkedList<std::vector<std::wstring>> {
       // TODO: Get from JSON file
 
       DLinkedList<std::vector<std::wstring>> t;
-      t.add(std::vector<std::wstring>{L"Curitiba", L"Mas aqui tá frio, tá ligado?!"});
-      t.add(std::vector<std::wstring>{L"Ponta Grossa", L"Lagoa Dourada"});
-      t.add(std::vector<std::wstring>{L"Guarapuava", L"Nunca fui, não faço ideia"});
-      t.add(std::vector<std::wstring>{L"Cascavel", L"Cidade de capivaras"});
+      t.add({L"Curitiba", L"Mas aqui tá frio, tá ligado?!"});
+      t.add({L"Ponta Grossa", L"Lagoa Dourada"});
+      t.add({L"Guarapuava", L"Nunca fui, não faço ideia"});
+      t.add({L"Cascavel", L"Cidade de capivaras"});
       routesData.insert(std::make_pair(L"Cascavel", t));
 
       DLinkedList<std::vector<std::wstring>> t2;
@@ -117,8 +106,8 @@ class RoutesData : public DLinkedList<std::vector<std::wstring>> {
     }
 };
 
-class Checkout : public Component {
-  Container container_ = Container::Vertical();
+class Checkout : public ComponentBase {
+  Component container_ = Container::Vertical({});
 
   public:
     std::shared_ptr<RoutesData> routesDataRef; 
@@ -130,7 +119,7 @@ class Checkout : public Component {
     int8_t idx;
 
     Checkout() {
-      Add(&container_);
+      Add(container_);
       idx = 0;
     }
 
@@ -221,27 +210,20 @@ class Checkout : public Component {
   }
 };
 
-class RoutesAddModal : public Component {
+class RoutesAddModal : public ComponentBase {
   private:
-    Container container_ = Container::Vertical();
-    
     // ------------------ LEFT SIDE ---------------------
-    Container routeInputContainer = Container::Vertical();
-    Container cityNameInputContainer = Container::Vertical();
-    Container cityBioInputContainer = Container::Vertical();
-    Container addCityButtonContainer = Container::Vertical();
+    std::wstring routeNameKey;
+    std::wstring cityName;
+    std::wstring cityBio;
+    Component routeInput = Input(&routeNameKey, "Input route name");
+    Component cityNameInput = Input(&cityName, "City name to be added");
+    Component cityBioInput = Input(&cityBio, "City description to be added");
 
-    ftxui::Input routeInput, cityNameInput, cityBioInput;
-    ftxui::Button addCity = Button(L"Add");
-    // ---------------------------------------------------
-
+    Component addCity = Button(L"Add", [] {});
 
     // ------------------ RIGHT SIDE ---------------------
-    Container cityListContainer = Container::Vertical();
-    Menu cityListMenu;
-    // ---------------------------------------------------
-  public:
-    std::wstring routeNameKey;
+    Component cityListContainer = Container::Vertical({});
 
     // TODO: Should grab from the current cityKeys
     // actually fairly easy, but I got no time
@@ -252,7 +234,6 @@ class RoutesAddModal : public Component {
         L"Campinas",
         L"Curitiba"
     };
-    
     // TODO: From the specific cityKey grab it's cities.
     std::vector<std::wstring> cityBioVec {
       L"Cascavel é uma cidade turística devida às suas capivaras",
@@ -261,59 +242,37 @@ class RoutesAddModal : public Component {
       L"Campinas? WTF isso é no Paraná?",
       L"Curitiba pô, tá frio tá ligado? kkk frio demais uiui"
     };
+    int cityListSelected = 0;
+    Component cityListMenu = Menu(&cityListVec, &cityListSelected);
+
+    // ---- Main ---
+    Component container_ = Container::Horizontal({
+        Container::Vertical({
+            routeInput,
+            cityNameInput,
+            cityBioInput,
+            addCity,
+        }),
+        cityListMenu,
+    });
+    // ---------------------------------------------------
+  public:
 
     RoutesAddModal() {
-      Add(&container_);
-      
-      // ======================= LEFT SIDE ============================
-      // ---------- INPUT -----------
-      container_.Add(&routeInputContainer);
-      container_.Add(&cityNameInputContainer);
-      container_.Add(&cityBioInputContainer);
+      Add(container_);
 
-      routeInput.placeholder = L"Input route name";
-      routeInput.on_enter = [this] {
-        // Use this variable to search bla bla bla
-        routeNameKey = routeInput.content;
-        /* if(RoutesData::routes.find(routeNameKey)->first == routeNameKey) routeNameKey = L"Achei"; */
-      };
-
-      cityNameInput.placeholder = L"City name to be added";
-      cityNameInput.on_enter = [this] {
-        // Add to the DLinkedList on route key
-      };
-
-      cityBioInput.placeholder = L"City description to be added";
-      cityBioInput.on_enter = [this] {
-        // Add to the DLinkedList on route key
-      };
-
-      routeInputContainer.Add(&routeInput);
-      cityNameInputContainer.Add(&cityNameInput);
-      cityBioInputContainer.Add(&cityBioInput);
-
-      container_.Add(&addCityButtonContainer);
-      addCityButtonContainer.Add(&addCity);
-      // ==============================================================
-
-  
-      // ======================= RIGHT SIDE ===========================
-      container_.Add(&cityListContainer);
-      cityListMenu.entries = cityListVec; 
-      cityListMenu.normal_style = dim | color(Color::YellowLight);
-      cityListMenu.selected_style = color(Color::YellowLight);
-      cityListMenu.focused_style = bold | color(Color::YellowLight);
-
-      cityListContainer.Add(&cityListMenu);
-      // ==============================================================
+      MenuBase::From(cityListMenu)->normal_style =
+          dim | color(Color::YellowLight);
+      MenuBase::From(cityListMenu)->selected_style = color(Color::YellowLight);
+      MenuBase::From(cityListMenu)->focused_style =
+          bold | color(Color::YellowLight);
     }
 
     Element Render() override {
-      auto routeName = window(text(L"Route"), routeInput.Render());
-      auto cityName = window(text(L"Add city"), cityNameInput.Render());
-      auto cityBio = window(text(L"Add city bio"), cityBioInput.Render());
-
-      auto cityList = window(text(L"City List"), cityListMenu.Render() | frame);
+      auto routeName = window(text(L"Route"), routeInput->Render());
+      auto cityName = window(text(L"Add city"), cityNameInput->Render());
+      auto cityBio = window(text(L"Add city bio"), cityBioInput->Render());
+      auto cityList = window(text(L"City List"), cityListMenu->Render() | frame);
       return hbox({ 
         vbox({
           routeName,
@@ -321,7 +280,7 @@ class RoutesAddModal : public Component {
           vbox({
             cityName,
             cityBio,
-            addCity.Render() | size(WIDTH, EQUAL, 10) | center,
+            addCity->Render() | size(WIDTH, EQUAL, 10) | center,
           })
         }) | flex | size(WIDTH, GREATER_THAN, 40),
         separator(),
@@ -335,7 +294,7 @@ class RoutesAddModal : public Component {
                 hbox({
                   cityList | size(HEIGHT, LESS_THAN, 10),
                   separator(),
-                  text(cityBioVec.at(cityListMenu.selected)) 
+                  text(cityBioVec.at(cityListSelected)),
                 })
               })
         }) | flex | size(WIDTH, GREATER_THAN, 40)
@@ -344,92 +303,75 @@ class RoutesAddModal : public Component {
 };
 
 
-class Routes : public Component {
+class Routes : public ComponentBase {
 
-  // -------------- Containers ---------------
-  Container container = Container::Vertical();
-
-  Container addAndLoad = Container::Horizontal();
-  Container save = Container::Horizontal();
   // -----------------------------------------
 
   // -------------- Modals -------------------
-  RoutesAddModal routesAddModal_;
+  int modal_shown = 0;
+  Component routesAddModal_ = Make<RoutesAddModal>();
   // -----------------------------------------
 
   // ----------------- Buttons ------------------
-  ftxui::Button addButton, loadButton, saveButton;
-  
-  std::function<void()> onAdd = [&] { routesAddModal_.TakeFocus(); };
-  std::function<void()> onSave = [&] { onQuit(); };
-  // --------------------------------------------
-  
+  Component addButton = Button(L"Add Route", [this] { modal_shown = 1; });
+  Component loadButton = Button(L"Load Routes", [this] {
+    xapa = routesDataRef.get()->routesData.begin()->first;
+    routesDataRef.get()->setRoutes();
+  });
+  Component saveButton = Button(L"Save and quit", [] {});
+
+  // -------------- Containers ---------------
+  Component addAndLoad = Container::Horizontal({
+      addButton,
+      loadButton,
+  });
+
+  Component save = Container::Horizontal({
+      saveButton,
+  });
+
+  Component container = Container::Vertical({
+      addAndLoad,
+      save,
+  });
+
+  Component main_container = Container::Tab({
+      container,
+      routesAddModal_,
+  }, &modal_shown);
+
   std::wstring xapa;
 
   public:
     std::function<void()> onQuit = [] {};
-    std::shared_ptr<RoutesData> routesDataRef; 
+    std::shared_ptr<RoutesData> routesDataRef;
 
-    Routes() {
-      Add(&container);
+    Routes() { Add(main_container); }
 
-      addButton.label = L"Add Route";
-      addButton.on_click = [&] { onAdd(); };
-      
-      loadButton.label = L"Load Routes";
-      loadButton.on_click = [&] {
-        xapa = routesDataRef.get()->routesData.begin()->first;
+    Element Render() override {
+      auto title = hbox({text((xapa.empty()) ? L"ROUTE MANAGEMENT" : xapa) |
+                         bold | center | color(Color::YellowLight)});
 
-        routesDataRef.get()->setRoutes();
-      };
+      auto buttons =
+          vbox({hbox(addAndLoad->Render()), hbox(save->Render()) | center}) |
+          center;
 
-      saveButton.label = L"Save and quit";
-      /* saveButton.on_click = [&] {  }; */
+      auto footer = hbox({text(L"© All rights reserver for Daniel™") | center});
 
-      addAndLoad.Add(&addButton);
-      addAndLoad.Add(&loadButton);
-      save.Add(&saveButton);
+      auto content =
+          vbox(title, filler(), buttons, filler(), footer) | flex | border;
 
-      container.Add(&addAndLoad);
-      container.Add(&save);
-      container.Add(&routesAddModal_);
-    }
+      Element document = content;
+      if (modal_shown) {
+        document =
+            dbox({document, routesAddModal_->Render() | clear_under | center});
+      }
 
-  Element Render() override {
-    auto title = hbox({
-      text((xapa.empty()) ? L"ROUTE MANAGEMENT" : xapa) | bold | center | color(Color::YellowLight)
-    });
-
-    auto buttons = vbox({
-      hbox(addAndLoad.Render()),
-      hbox(save.Render()) | center
-    }) | center;
-
-    auto footer = hbox({
-      text(L"© All rights reserver for Daniel™") | center
-    });
-
-    auto content = vbox(
-        title,
-        filler(),
-        buttons,
-        filler(),
-        footer
-    ) | flex | border; 
-
-    Element document = content;
-    if(routesAddModal_.Focused()) {
-      document = dbox({
-        document,
-        routesAddModal_.Render() | clear_under | center
-      });
-    }
-
-    return document;
+      return document;
   }
 };
 
-class Home : public Component {
+class Home : public ComponentBase {
   Element Render() override {
     auto title = hbox({
       text(L"Welcome to Daniel's "),
@@ -451,44 +393,52 @@ class Home : public Component {
   }
 };
 
-class Tab : public Component {
+class Tab : public ComponentBase {
   public:
-    Container mainContainer = Container::Vertical();
-    
+    Component mainContainer = Container::Vertical({});
+
     std::function<void()> onQuit = [] {};
 
-    Toggle tabSelection;
-    Container container = Container::Tab(&tabSelection.selected);
+    int tab_selected = 0;
+    std::vector<std::wstring> tab_entries = {
+        L"Home",
+        L"Routes",
+        L"Checkout",
+        L"About",
+    };
+    Component tabSelection = Toggle(&tab_entries, &tab_selected);
 
-    Home home;
-    Routes routes;
-    Checkout checkout;
-    About about;
+    Component home = Make<Home>();
+    std::shared_ptr<Routes> routes = Make<Routes>();
+    std::shared_ptr<Checkout> checkout = Make<Checkout>();
+    Component about =
+        Renderer([] { return hbox(text(L"About") | center) | flex | border; });
+
+    Component container = Container::Tab(
+        {
+            home,
+            routes,
+            checkout,
+            about,
+        },
+        &tab_selected);
 
     Tab() {
       auto shared_data = std::make_shared<RoutesData>();
 
-      Add(&mainContainer);
-      mainContainer.Add(&tabSelection);
-      tabSelection.entries = {
-        L"Home", L"Routes", L"Checkout", L"About",
-      };
-      mainContainer.Add(&container);
+      Add(mainContainer);
+      mainContainer->Add(tabSelection);
+      mainContainer->Add(container);
       
-      routes.routesDataRef = shared_data;
-      checkout.routesDataRef = shared_data;
-
-      container.Add(&home);
-      container.Add(&routes);
-      container.Add(&checkout);
-      container.Add(&about);
+      routes->routesDataRef = shared_data;
+      checkout->routesDataRef = shared_data;
     }
 
     Element Render() override {
       return vbox({
         text(L"Daniel's Bus System") | bold | hcenter,
-        tabSelection.Render() | hcenter,
-        container.Render() | flex,
+        tabSelection->Render() | hcenter,
+        container->Render() | flex,
       });
     }
 };
@@ -507,9 +457,9 @@ int main() {
     }
   });
 
-  Tab tab;
-  tab.onQuit = screen.ExitLoopClosure();
-  screen.Loop(&tab);
+  std::shared_ptr<Tab> tab = Make<Tab>();
+  tab->onQuit = screen.ExitLoopClosure();
+  screen.Loop(tab);
 
   return 0;
 }
