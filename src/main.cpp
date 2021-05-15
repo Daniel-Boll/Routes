@@ -351,81 +351,71 @@ class Routes : public ComponentBase {
   }
 };
 
-class Tab : public ComponentBase {
-  public:
-    Component mainContainer = Container::Vertical({});
-
-    std::function<void()> onQuit = [] {};
-
-    int tab_selected = 0;
-    std::vector<std::wstring> tab_entries = {
-        L"Home",
-        L"Routes",
-        L"Checkout",
-        L"About",
-    };
-    Component tabSelection = Toggle(&tab_entries, &tab_selected);
-
-    Component home = Renderer([] {
-      auto title =
-          hbox({
-              text(L"Welcome to Daniel's "),
-              text(L"Bus System ") | blink | bold | color(Color::YellowLight),
-              text(L"Management"),
-          }) |
-          hcenter;
-
-      auto footer = text(L"© All rights reserver for Daniel™") | hcenter;
-
-      return vbox({
-                 filler(),
-                 title,
-                 filler(),
-                 footer,
-             }) |
-             border;
-    });
-
-    std::shared_ptr<Routes> routes = Make<Routes>();
-    std::shared_ptr<Checkout> checkout = Make<Checkout>();
-    Component about =
-        Renderer([] { return hbox(text(L"About") | center) | flex | border; });
-
-    Component container = Container::Tab(
-        {
-            home,
-            routes,
-            checkout,
-            about,
-        },
-        &tab_selected);
-
-    Tab() {
-      auto shared_data = std::make_shared<RoutesData>();
-
-      Add(mainContainer);
-      mainContainer->Add(tabSelection);
-      mainContainer->Add(container);
-      
-      routes->routesDataRef = shared_data;
-      checkout->routesDataRef = shared_data;
-    }
-
-    Element Render() override {
-      return vbox({
-        text(L"Daniel's Bus System") | bold | hcenter,
-        tabSelection->Render() | hcenter,
-        container->Render() | flex,
-      });
-    }
-};
-
 int main() {
-  auto screen = ScreenInteractive::Fullscreen();
+  auto tab_home = Renderer([] {
+    auto title =
+        hbox({
+            text(L"Welcome to Daniel's "),
+            text(L"Bus System ") | blink | bold | color(Color::YellowLight),
+            text(L"Management"),
+        }) |
+        hcenter;
 
-  std::shared_ptr<Tab> tab = Make<Tab>();
-  tab->onQuit = screen.ExitLoopClosure();
-  screen.Loop(tab);
+    auto footer = text(L"© All rights reserver for Daniel™") | hcenter;
+
+    return vbox({
+               filler(),
+               title,
+               filler(),
+               footer,
+           }) |
+           border;
+  });
+
+  std::shared_ptr<Routes> tab_routes = Make<Routes>();
+  std::shared_ptr<Checkout> tab_checkout = Make<Checkout>();
+
+  Component tab_about =
+      Renderer([] { return hbox(text(L"About") | center) | flex | border; });
+
+  int tab_selected = 0;
+  std::vector<std::wstring> tab_entries = {
+      L"Home",
+      L"Routes",
+      L"Checkout",
+      L"About",
+  };
+  auto tab_selection = Toggle(&tab_entries, &tab_selected);
+
+  Component tab_content = Container::Tab(
+      {
+          tab_home,
+          tab_routes,
+          tab_checkout,
+          tab_about,
+      },
+      &tab_selected);
+
+  auto component = Container::Vertical({
+      tab_selection,
+      tab_content,
+  });
+
+
+  component = Renderer(component, [&] {
+    return vbox({
+        text(L"Daniel's Bus System") | bold | hcenter,
+        tab_selection->Render() | hcenter,
+        tab_content->Render() | flex,
+    });
+  });
+
+  auto shared_data = std::make_shared<RoutesData>();
+  tab_routes->routesDataRef = shared_data;
+  tab_checkout->routesDataRef = shared_data;
+
+  auto screen = ScreenInteractive::Fullscreen();
+  screen.Loop(component);
 
   return 0;
 }
