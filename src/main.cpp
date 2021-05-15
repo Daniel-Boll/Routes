@@ -3,9 +3,8 @@
 
 #include <chrono>
 #include <iostream>
-#include <thread>
-#include <string>
 #include <locale>
+#include <string>
 
 #include <codecvt>
 #include <vector>
@@ -440,19 +439,8 @@ class Tab : public ComponentBase {
     }
 };
 
-int shift = 0;
-
 int main() {
   auto screen = ScreenInteractive::Fullscreen();
-  
-  std::thread update([&screen]() {
-    for(;;) {
-      using namespace std::chrono_literals;
-      std::this_thread::sleep_for(0.05s);
-      shift++;
-      screen.PostEvent(Event::Custom);
-    }
-  });
 
   std::shared_ptr<Tab> tab = Make<Tab>();
   tab->onQuit = screen.ExitLoopClosure();
